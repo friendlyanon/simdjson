@@ -8,6 +8,9 @@ on:
     branches:
       - master
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   ubuntu-build:
     runs-on: ubuntu-18.04
@@ -21,8 +24,8 @@ jobs:
         run: |
           mkdir build &&
           cd build &&
-          cmake  -DSIMDJSON_GOOGLE_BENCHMARKS=ON -DSIMDJSON_BUILD_STATIC=ON -DCMAKE_INSTALL_PREFIX:PATH=destination ..  &&
-          cmake --build .   &&
-          ctest -j --output-on-failure -LE explicitonly   &&
-          make install  &&
+          cmake -D CMAKE_BUILD_TYPE=$BUILD_TYPE -DSIMDJSON_GOOGLE_BENCHMARKS=ON -DSIMDJSON_BUILD_STATIC=ON -DCMAKE_INSTALL_PREFIX:PATH=destination ..  &&
+          cmake --build . --config $BUILD_TYPE &&
+          ctest -j --output-on-failure -C $BUILD_TYPE &&
+          make install &&
           echo -e '#include <simdjson.h>\nint main(int argc,char**argv) {simdjson::dom::parser parser;simdjson::dom::element tweets = parser.load(argv[1]); }' > tmp.cpp && c++ -Idestination/include -Ldestination/lib -std=c++17 -Wl,-rpath,destination/lib -o linkandrun tmp.cpp -lsimdjson && ./linkandrun jsonexamples/twitter.json

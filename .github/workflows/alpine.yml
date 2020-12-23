@@ -8,6 +8,9 @@ on:
     branches:
       - master
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   ubuntu-build:
     runs-on: ubuntu-latest
@@ -28,10 +31,10 @@ jobs:
           ./alpine.sh apk add build-base cmake g++ linux-headers git bash
       - name: cmake
         run: |
-          ./alpine.sh cmake -B build_for_alpine
+          ./alpine.sh cmake -B build_for_alpine -D CMAKE_BUILD_TYPE=$BUILD_TYPE
       - name: build
         run: |
-          ./alpine.sh cmake --build build_for_alpine
+          ./alpine.sh cmake --build build_for_alpine --config $BUILD_TYPE
       - name: test
         run: |
-          ./alpine.sh bash -c "cd build_for_alpine && ctest  -LE explicitonly"
+          ./alpine.sh bash -c "cd build_for_alpine && ctest -C $BUILD_TYPE"
